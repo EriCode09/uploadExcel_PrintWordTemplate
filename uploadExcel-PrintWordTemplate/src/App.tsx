@@ -1,13 +1,16 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FileUploader } from "baseui/file-uploader";
 import { Button } from "baseui/button";
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import * as XLSX from "xlsx";
-import Docxtemplater from 'docxtemplater';
+
 import { saveAs } from 'file-saver';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
+
+// import * as Docxtemplater from 'docx-templates';
+import Docxtemplater from 'docxtemplater';
 
 // Styleron for BaseUI Components
 import { Provider as StyletronProvider } from 'styletron-react';
@@ -21,6 +24,7 @@ type Data = {
   Dirección: string,
   Telefono: number,
   Edad: number,
+  Template: string,
 }
 
 
@@ -30,11 +34,9 @@ function App() {
   const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Conversion a Word
+  // Estado donde se subirán los datos del excel en formato JSON.
   const [docData, setDocData] = useState<Data[]>([])
-
-  const [template, setTemplate] = useState<Docxtemplater | null>(null);
-  const [document, setDocument] = useState<string | null>(null);
+  const [template, setTemplate] = useState(null);
 
 
   // Manejamos la subida de datos y asignamos el primer archivo al estado 'File'
@@ -71,6 +73,7 @@ function App() {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json<Data>(worksheet);
         setDocData(jsonData);
+        console.log(docData);
       };
 
     } catch (error) {
@@ -81,50 +84,21 @@ function App() {
 
   };
 
-  useEffect(() => {
-    fetch('./assets/plantillaDatos.docx')
-      .then(response => response.arrayBuffer())
-      .then(buffer => {
-        const newTemplate = new Docxtemplater();
-        newTemplate.loadZip(buffer);
-        setTemplate(newTemplate);
-      });
-  }, []);
-
-  const generarDocumento = () => {
-    if (template) {
-      template.setData(docData);
-      const newDocument = template.render();
-      setDocument(newDocument.toString());
-    }
-  };
-
-  const descargarDocumento = async () => {
-    const response = await fetch('./assets/plantillaDatos.docx');
+  const modifyTemplateAndDowload = async () => {
+    const response = await fetch('templateData.docx')
+    // const response = await axios.get('/templateData.docx')
+    console.log(response)
     const buffer = await response.arrayBuffer();
-    const zip = new JSZip();
-    const template = new Docxtemplater();
-    const uint8Array = new Uint8Array(buffer);
-
-    zip.loadAsync(uint8Array).then((contents) => {
-      template.loadZip(contents);
-      template.setData(docData);
-      try {
-      template.render();
-      } catch (error) {
-        console.log(error);
-        return;
-      }
-      const out = template.getZip().generate({
-        type: 'blob',
-        mimeType:
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      });
-      saveAs(out, 'documento1.docx');
-    });
+    console.log(buffer)
+    const zip = await JSZip.loadAsync(buffer);
+    const doc = new Docxtemplater();
+    doc.loadZip(zip);
+    doc.setData(docData);
+    doc.render();
+    console.log(doc)
+    const output = doc.getZip().generate({ type: 'blob' });
+    saveAs(output, 'documento.docx');
   };
-
-
 
   return (
     <StyletronProvider value={engine}>
@@ -150,7 +124,7 @@ function App() {
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
 
-        <Button onClick={descargarDocumento}>Descargar Doc</Button>
+        <Button onClick={modifyTemplateAndDowload}>Descargar Doc</Button>
 
       </div>
       <p className="read-the-docs">
