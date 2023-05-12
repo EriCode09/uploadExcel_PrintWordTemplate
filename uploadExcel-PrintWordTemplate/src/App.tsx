@@ -87,15 +87,42 @@ async function App() {
 
   };
 
-  const response = await fetch('plantilla.docx');
-  const templateFile = await response.blob();
-
+  
   // Se utiliza reduce para pasar la información al formato necesario
   const dataObject: DataObject = docData.reduce((obj, item) => {
     obj[item.id] = item;
     return obj;
   }, {} as DataObject);
 
+  // Método 1 con easy-template-x
+
+  // const [loading, setLoading] = useState(false);
+  // const [url, setUrl] = useState<string | null>(null);
+
+
+  // const generateReport = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch('plantilla.docx');
+  //     const templateFile =  await response.blob();
+  //     const handler = new TemplateHandler();
+  //     const result = await handler.process(templateFile, dataObject);
+  //     const blob = new Blob([result], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  //     const url = URL.createObjectURL(blob);
+  //     console.log(url)
+  //     setUrl(url);
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+// Metodo 2 con easy-template-x
+
+  const response = await fetch('plantilla.docx');
+  const templateFile = await response.blob();
   const handler = new TemplateHandler();
   const doc = await handler.process(templateFile, dataObject);
 
@@ -129,8 +156,7 @@ async function App() {
     }, 0);
 }
 
-
-
+  // Método 1 con JSZip 
 
   // const modifyTemplateAndDowload = async () => {
   //   const response = await fetch('templateData.docx')
@@ -168,11 +194,18 @@ async function App() {
       onDrop={handleFileUpload}
       />
 
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+    {/* {loading && <p>Generando informe...</p>}
+    {url && (
+      <a href={url} download="informe.docx">
+        Descargar informe
+      </a>
+    )}
+    
+    {!loading && !url && (
+      <button onClick={generateReport}>Generar informe</button>
+    )} */}
 
-        <Button onClick={modifyTemplateAndDowload}>Descargar Doc</Button>
+    <Button onClick={() => saveFile('doc1', doc)}> Download Docx </Button>
 
       </div>
       <p className="read-the-docs">
