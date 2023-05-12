@@ -6,11 +6,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import * as XLSX from "xlsx";
 
-import { saveAs } from 'file-saver';
-import JSZip from 'jszip';
-
-// import * as Docxtemplater from 'docx-templates';
-import Docxtemplater from 'docxtemplater';
+import { TemplateHandler } from 'easy-template-x';
 
 // Styleron for BaseUI Components
 import { Provider as StyletronProvider } from 'styletron-react';
@@ -19,6 +15,7 @@ const engine = new Styletron();
 
 // Asignamos tipado a los datos que sacamos del JSON
 type Data = {
+  id: number,
   Nombre: string,
   Apellido: string,
   Dirección: string,
@@ -27,8 +24,13 @@ type Data = {
   Template: string,
 }
 
+type DataObject = {
+  [key: string]: Data;
+}
 
-function App() {
+
+
+async function App() {
 
   // Subida excel
   const [file, setFile] = useState<File | null>(null);
@@ -72,6 +74,7 @@ function App() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json<Data>(worksheet);
+        // Almacenamos en el estado todos los datos en JSON
         setDocData(jsonData);
         console.log(docData);
       };
@@ -84,21 +87,66 @@ function App() {
 
   };
 
-  const modifyTemplateAndDowload = async () => {
-    const response = await fetch('templateData.docx')
-    // const response = await axios.get('/templateData.docx')
-    console.log(response)
-    const buffer = await response.arrayBuffer();
-    console.log(buffer)
-    const zip = await JSZip.loadAsync(buffer);
-    const doc = new Docxtemplater();
-    doc.loadZip(zip);
-    doc.setData(docData);
-    doc.render();
-    console.log(doc)
-    const output = doc.getZip().generate({ type: 'blob' });
-    saveAs(output, 'documento.docx');
-  };
+  const response = await fetch('plantilla.docx');
+  const templateFile = await response.blob();
+
+  // Se utiliza reduce para pasar la información al formato necesario
+  const dataObject: DataObject = docData.reduce((obj, item) => {
+    obj[item.id] = item;
+    return obj;
+  }, {} as DataObject);
+
+  const handler = new TemplateHandler();
+  const doc = await handler.process(templateFile, dataObject);
+
+  function saveFile(filename: string, blob: Blob) {
+
+    // see: https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
+
+    // get downloadable url from the blob
+    const blobUrl = URL.createObjectURL(blob);
+
+    // create temp link element
+    let link: HTMLAnchorElement | null = document.createElement("a");
+    link.download = filename;
+    link.href = blobUrl;
+
+    // use the link to invoke a download
+    document.body.appendChild(link);
+    link.click();
+
+    // remove the link
+    setTimeout(() => {
+
+      if (link !== null) {
+        link.remove();
+        window.URL.revokeObjectURL(blobUrl);
+        link = null;
+      }
+
+      else return;
+
+    }, 0);
+}
+
+
+
+
+  // const modifyTemplateAndDowload = async () => {
+  //   const response = await fetch('templateData.docx')
+  //   // const response = await axios.get('/templateData.docx')
+  //   console.log(response)
+  //   const buffer = await response.arrayBuffer();
+  //   console.log(buffer)
+  //   const zip = await JSZip.loadAsync(buffer);
+  //   const doc = new Docxtemplater();
+  //   doc.loadZip(zip);
+  //   doc.setData(docData);
+  //   doc.render();
+  //   console.log(doc)
+  //   const output = doc.getZip().generate({ type: 'blob' });
+  //   saveAs(output, 'documento.docx');
+  // };
 
   return (
     <StyletronProvider value={engine}>
