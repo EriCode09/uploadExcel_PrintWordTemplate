@@ -29,8 +29,7 @@ type DataObject = {
 }
 
 
-
-async function App() {
+function App() {
 
   // Subida excel
   const [file, setFile] = useState<File | null>(null);
@@ -38,7 +37,6 @@ async function App() {
 
   // Estado donde se subirán los datos del excel en formato JSON.
   const [docData, setDocData] = useState<Data[]>([])
-  const [template, setTemplate] = useState(null);
 
 
   // Manejamos la subida de datos y asignamos el primer archivo al estado 'File'
@@ -50,19 +48,24 @@ async function App() {
     if (acceptedfiles.length > 0) {
       const firstFile = acceptedfiles[0];
       setFile(firstFile);
-      if (file !== null) convertToJson(file)
     } else {
       console.log("Documentos rechazados: " + rejectedFiles);
     }
 
   };
 
+  useEffect(() => {
+    if (file !== null) {
+      convertToJson(file);
+    }
+  }, [file]);
+
   // Convertimos los datos de Excel en JSON.
   const convertToJson = (file: File) => {
 
-    if (file === null) {
-      return;
-    }
+    // if (file !== null) {
+    //   return;
+    // }
 
     try {
       console.log(file)
@@ -76,7 +79,6 @@ async function App() {
         const jsonData = XLSX.utils.sheet_to_json<Data>(worksheet);
         // Almacenamos en el estado todos los datos en JSON
         setDocData(jsonData);
-        console.log(docData);
       };
 
     } catch (error) {
@@ -90,7 +92,7 @@ async function App() {
   
   // Se utiliza reduce para pasar la información al formato necesario
   const dataObject: DataObject = docData.reduce((obj, item) => {
-    obj[item.id] = item;
+    obj[item.Nombre] = item;
     return obj;
   }, {} as DataObject);
 
@@ -121,10 +123,15 @@ async function App() {
 
 // Metodo 2 con easy-template-x
 
-  const response = await fetch('plantilla.docx');
-  const templateFile = await response.blob();
-  const handler = new TemplateHandler();
-  const doc = await handler.process(templateFile, dataObject);
+  async function DownloadNewDoc() {
+    const response = await fetch('/plantilla.docx');
+    console.log(dataObject);
+    console.log(response);
+    const templateFile = await response.blob();
+    const handler = new TemplateHandler();
+    const doc = await handler.process(templateFile, dataObject);
+    saveFile('doc1.docx',doc);
+  }
 
   function saveFile(filename: string, blob: Blob) {
 
@@ -205,7 +212,7 @@ async function App() {
       <button onClick={generateReport}>Generar informe</button>
     )} */}
 
-    <Button onClick={() => saveFile('doc1', doc)}> Download Docx </Button>
+    <Button style={{marginTop: 20}} onClick={DownloadNewDoc}> Download Docx </Button>
 
       </div>
       <p className="read-the-docs">

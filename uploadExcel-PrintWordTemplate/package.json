@@ -16,6 +16,7 @@
     "docx": "^8.0.3",
     "docx-templates": "^4.11.1",
     "docxtemplater": "^3.37.2",
+    "easy-template-x": "^3.1.0",
     "file-saver": "^2.0.5",
     "fs": "^0.0.1-security",
     "jszip": "^3.10.1",
