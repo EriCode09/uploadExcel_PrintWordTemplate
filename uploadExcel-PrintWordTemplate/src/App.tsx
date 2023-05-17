@@ -6,7 +6,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import * as XLSX from "xlsx";
 
-import { TemplateHandler } from 'easy-template-x';
+import { TemplateData, TemplateHandler } from 'easy-template-x';
 
 // Styleron for BaseUI Components
 import { Provider as StyletronProvider } from 'styletron-react';
@@ -22,12 +22,8 @@ type Data = {
   Telefono: number,
   Edad: number,
   Template: string,
+  TransformarDocx: boolean,
 }
-
-type DataObject = {
-  [key: string]: Data;
-}
-
 
 function App() {
 
@@ -63,10 +59,6 @@ function App() {
   // Convertimos los datos de Excel en JSON.
   const convertToJson = (file: File) => {
 
-    // if (file !== null) {
-    //   return;
-    // }
-
     try {
       console.log(file)
       const fileReader = new FileReader();
@@ -89,49 +81,65 @@ function App() {
 
   };
 
+  async function DownloadNewDocs() {
   
-  // Se utiliza reduce para pasar la información al formato necesario
-  const dataObject: DataObject = docData.reduce((obj, item) => {
-    obj[item.Nombre] = item;
-    return obj;
-  }, {} as DataObject);
+  // Es necesario ejecutar el Promise.all para que los datos que obtenemos de forma asíncrona dentro del map, se resuelvan correctamente. 
+    const newDocs = await Promise.all(
+      docData.map( async (item) => {
 
-  // Método 1 con easy-template-x
+        // Asignamos todos los datos del registro en un objeto JSON
+        const data: any = {
+          "data": [
+            {
+              "id": item.id,
+              "Template": item.Template,
+              "TransformarDocx": item.TransformarDocx,
+              "Nombre": item.Nombre,
+              "Apellido": item.Apellido,
+              "Edad": item.Edad,
+              "Telefono": item.Telefono,
+              "Dirección": item.Dirección,
+            }
+          ]
+        }
 
-  // const [loading, setLoading] = useState(false);
-  // const [url, setUrl] = useState<string | null>(null);
+        try {
 
+          // Filtramos por los documentos que no quieren ser transformados a docx.
+          if (item.TransformarDocx !== false) {
+  
+            // Seleccionamos la plantilla que deseamos
+  
+            if (item.Template === 'plantilla') {
+              const response = await fetch('/plantilla.docx');
+              console.log(response);
+              const templateFile = await response.blob();
+              const handler = new TemplateHandler();
+              const doc = await handler.process(templateFile, data);
+              saveFile(`Doc - ${item.Nombre}${item.Apellido}.docx`,doc);
+            }
+  
+            else if(item.Template === 'plantillaDatos') {
+              const response = await fetch('/plantillaDatos.docx');
+              console.log(response);
+              const templateFile = await response.blob();
+              const handler = new TemplateHandler();
+              const doc = await handler.process(templateFile, data);
+              saveFile(`Doc - ${item.Nombre}${item.Apellido}.docx`,doc);
+            }
+  
+          }
+          
+        } catch (error) {
 
-  // const generateReport = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await fetch('plantilla.docx');
-  //     const templateFile =  await response.blob();
-  //     const handler = new TemplateHandler();
-  //     const result = await handler.process(templateFile, dataObject);
-  //     const blob = new Blob([result], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  //     const url = URL.createObjectURL(blob);
-  //     console.log(url)
-  //     setUrl(url);
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
-// Metodo 2 con easy-template-x
-
-  async function DownloadNewDoc() {
-    const response = await fetch('/plantilla.docx');
-    console.log(dataObject);
-    console.log(response);
-    const templateFile = await response.blob();
-    const handler = new TemplateHandler();
-    const doc = await handler.process(templateFile, dataObject);
-    saveFile('doc1.docx',doc);
+          console.log('No se ha podido descargar el documento por el siguiente error: ' + error )
+          
+        }
+      })
+    )
   }
+
+  
 
   function saveFile(filename: string, blob: Blob) {
 
@@ -163,24 +171,6 @@ function App() {
     }, 0);
 }
 
-  // Método 1 con JSZip 
-
-  // const modifyTemplateAndDowload = async () => {
-  //   const response = await fetch('templateData.docx')
-  //   // const response = await axios.get('/templateData.docx')
-  //   console.log(response)
-  //   const buffer = await response.arrayBuffer();
-  //   console.log(buffer)
-  //   const zip = await JSZip.loadAsync(buffer);
-  //   const doc = new Docxtemplater();
-  //   doc.loadZip(zip);
-  //   doc.setData(docData);
-  //   doc.render();
-  //   console.log(doc)
-  //   const output = doc.getZip().generate({ type: 'blob' });
-  //   saveAs(output, 'documento.docx');
-  // };
-
   return (
     <StyletronProvider value={engine}>
       <div>
@@ -201,18 +191,7 @@ function App() {
       onDrop={handleFileUpload}
       />
 
-    {/* {loading && <p>Generando informe...</p>}
-    {url && (
-      <a href={url} download="informe.docx">
-        Descargar informe
-      </a>
-    )}
-    
-    {!loading && !url && (
-      <button onClick={generateReport}>Generar informe</button>
-    )} */}
-
-    <Button style={{marginTop: 20}} onClick={DownloadNewDoc}> Download Docx </Button>
+    <Button style={{marginTop: 20}} onClick={DownloadNewDocs}> Download Docx </Button>
 
       </div>
       <p className="read-the-docs">
