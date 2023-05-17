@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FileUploader } from "baseui/file-uploader";
 import { Button } from "baseui/button";
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import wordLogo from '/word.png'
+import excelLogo from '/excel.png'
 import './App.css'
 import * as XLSX from "xlsx";
 
@@ -174,15 +174,17 @@ function App() {
   return (
     <StyletronProvider value={engine}>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+        <a href="" target="_blank">
+          <img src={excelLogo} className="logo excel" alt="Excel logo" />
         </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+        <a href="" target="_self">
+          <img src={wordLogo} className="logo" alt="Word logo" />
         </a>
       </div>
 
       <h1>Excel to Word Template</h1>
+
+      {docData && docData.length === 0 && (<p className='read-the-docs'> First of all upload a Excel file... </p>)}
 
       <div className="card">
       <FileUploader 
@@ -191,12 +193,12 @@ function App() {
       onDrop={handleFileUpload}
       />
 
-    <Button style={{marginTop: 20}} onClick={DownloadNewDocs}> Download Docx </Button>
+    {docData && docData.length > 0 && (<Button style={{marginTop: 20}} onClick={DownloadNewDocs}> Download Docx </Button>)}
+    {docData && docData.length > 0 && (<p className='read-the-docs'> Press the button to download transformed files! </p>)}
 
+    
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+
     </StyletronProvider>
   )
 }
