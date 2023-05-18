@@ -116,7 +116,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc - ${item.Nombre}${item.Apellido}.docx`,doc);
+              saveFile(`Doc${item.id} - ${item.Nombre}${item.Apellido}.docx`,doc);
             }
   
             else if(item.Template === 'plantillaDatos') {
@@ -125,7 +125,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc - ${item.Nombre}${item.Apellido}.docx`,doc);
+              saveFile(`Doc${item.id} - ${item.Nombre}${item.Apellido}.docx`,doc);
             }
   
           }
@@ -184,7 +184,7 @@ function App() {
 
       <h1>Excel to Word Template</h1>
 
-      {docData && docData.length === 0 && (<p className='read-the-docs'> First of all upload a Excel file... </p>)}
+      {docData && docData.length === 0 && (<p className='read-the-docs'> First, you need to upload an Excel file... </p>)}
 
       <div className="card">
       <FileUploader 
