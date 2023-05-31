@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileUploader } from "baseui/file-uploader";
 import { Button } from "baseui/button";
 import wordLogo from '/word.png'
@@ -17,12 +17,14 @@ const engine = new Styletron();
 type Data = {
   id: number,
   Nombre: string,
-  Apellido: string,
+  Servicios: Array<{ servicio: string } | string>,
   Dirección: string,
   Telefono: number,
   Edad: number,
   Template: string,
   TransformarDocx: boolean,
+  Horas: Array<{ horas: number } | number>,
+  PreciosHora: Array<{ precio: number } | number>,
 }
 
 function App() {
@@ -83,22 +85,11 @@ function App() {
 
   async function DownloadNewDocs() {
   
-  // Es necesario ejecutar el Promise.all para que los datos que obtenemos de forma asíncrona dentro del map, se resuelvan correctamente. 
-    const newDocs = await Promise.all(
+  const newDocs = await Promise.all(
       docData.map( async (item) => {
-        // Asignamos todos los datos del registro en un objeto JSON
-
-        const servicesArray: Array<string> = [];
-
-        const services1 = item.Apellido.split('\r\n')[0]
-        const services2 = item.Apellido.split('\r\n')[1]
-        const services3 = item.Apellido.split('\r\n')[2]
-
-        if (services1 !== undefined) servicesArray.push(services1);
-        if (services2 !== undefined) servicesArray.push(services2);
-        if (services3 !== undefined) servicesArray.push(services3);
 
         
+        // Asignamos todos los datos del registro en un objeto JSON
         const data: any = {
           "data": [
             {
@@ -106,14 +97,33 @@ function App() {
               "Template": item.Template,
               "TransformarDocx": item.TransformarDocx,
               "Nombre": item.Nombre,
-              "Apellido": [{"service": servicesArray[1]}, {"service": servicesArray[2]}],
+              "Servicios": [],
               "Edad": item.Edad,
               "Telefono": item.Telefono,
               "Dirección": item.Dirección,
+              "Horas": [],
+              "PreciosHora": [],
             }
           ]
         }
-                
+        
+        const existingData = docData.map(data => data);
+        const searchSameidData = existingData.filter(data => data.id === item.id);
+
+        searchSameidData.forEach((datos: any) => {
+
+          data.data[0].Servicios.push({servicio: datos.Servicios});
+          data.data[0].Horas.push({horas : datos.Horas});
+          data.data[0].PreciosHora.push({precio: datos.PreciosHora});
+
+        })
+
+        // const serviceArray = item.Apellido.split('\r\n')
+        
+        // serviceArray.forEach((service: any) => {
+          //   data.data[0].Apellido.push({"service": service})  
+        // })
+        
         try {
           console.log(data);
           // Filtramos por los documentos que no quieren ser transformados a docx.
@@ -127,7 +137,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Nombre}${item.Apellido}.docx`,doc);
+              saveFile(`Doc${item.id} - ${item.Nombre}.docx`,doc);
             }
   
             else if(item.Template === 'plantillaDatos') {
@@ -136,7 +146,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Nombre}${item.Apellido}.docx`,doc);
+              saveFile(`Doc${item.id} - ${item.Nombre}.docx`,doc);
             }
   
           }
