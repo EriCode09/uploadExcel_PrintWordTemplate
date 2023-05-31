@@ -86,8 +86,19 @@ function App() {
   // Es necesario ejecutar el Promise.all para que los datos que obtenemos de forma asíncrona dentro del map, se resuelvan correctamente. 
     const newDocs = await Promise.all(
       docData.map( async (item) => {
-
         // Asignamos todos los datos del registro en un objeto JSON
+
+        const servicesArray: Array<string> = [];
+
+        const services1 = item.Apellido.split('\r\n')[0]
+        const services2 = item.Apellido.split('\r\n')[1]
+        const services3 = item.Apellido.split('\r\n')[2]
+
+        if (services1 !== undefined) servicesArray.push(services1);
+        if (services2 !== undefined) servicesArray.push(services2);
+        if (services3 !== undefined) servicesArray.push(services3);
+
+        
         const data: any = {
           "data": [
             {
@@ -95,16 +106,16 @@ function App() {
               "Template": item.Template,
               "TransformarDocx": item.TransformarDocx,
               "Nombre": item.Nombre,
-              "Apellido": item.Apellido,
+              "Apellido": [{"service": servicesArray[1]}, {"service": servicesArray[2]}],
               "Edad": item.Edad,
               "Telefono": item.Telefono,
               "Dirección": item.Dirección,
             }
           ]
         }
-
+                
         try {
-
+          console.log(data);
           // Filtramos por los documentos que no quieren ser transformados a docx.
           if (item.TransformarDocx !== false) {
   
