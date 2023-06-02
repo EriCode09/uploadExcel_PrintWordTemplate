@@ -23,8 +23,10 @@ type Data = {
   Edad: number,
   Template: string,
   TransformarDocx: boolean,
-  Horas: Array<{ horas: number } | number>,
-  PreciosHora: Array<{ precio: number } | number>,
+  Horas: number,
+  PreciosHora: number,
+  PrecioServicio: number,
+  PrecioTotal: number
 }
 
 function App() {
@@ -101,22 +103,37 @@ function App() {
               "Edad": item.Edad,
               "Telefono": item.Telefono,
               "Dirección": item.Dirección,
-              "Horas": [],
-              "PreciosHora": [],
+              "PrecioTotal": 0
             }
           ]
         }
         
         const existingData = docData.map(data => data);
         const searchSameidData = existingData.filter(data => data.id === item.id);
+        const ArrPrecioTotal: Array<number> = [];
 
+        function sumarPrecioTotal(array: Array<number>) {
+          let suma = 0;
+          for(let i = 0; i < array.length; i++) {
+            suma += array[i];
+          }
+          return suma;
+        }
+
+        
         searchSameidData.forEach((datos: any) => {
-
-          data.data[0].Servicios.push({servicio: datos.Servicios});
-          data.data[0].Horas.push({horas : datos.Horas});
-          data.data[0].PreciosHora.push({precio: datos.PreciosHora});
-
+          
+          ArrPrecioTotal.push(datos.PrecioServicio)
+          data.data[0].Servicios.push({servicio: datos.Servicios, horas: datos.Horas, precio: datos.PreciosHora , precioServi: datos.PrecioServicio});
+          // data.data[0].Horas.push({horas : datos.Horas});
+          // data.data[0].PreciosHora.push({precio: datos.PreciosHora});
+          // data.data[0].PrecioServicio.push({precioServi: datos.PrecioServicio});
+          
+          
         })
+        
+        data.data[0].PrecioTotal = sumarPrecioTotal(ArrPrecioTotal);
+        console.log(ArrPrecioTotal);
 
         // const serviceArray = item.Apellido.split('\r\n')
         
