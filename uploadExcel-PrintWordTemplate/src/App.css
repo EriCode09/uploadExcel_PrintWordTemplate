@@ -7,12 +7,20 @@
 
 .logo {
   height: 8em;
-  padding: 1.5em;
+  margin-left: 15px;
   will-change: filter;
   transition: filter 300ms;
 }
+
+.logo.excel {
+  height: 8em;
+  margin-left: 0px;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #202bff8a);
 }
 .logo.excel:hover {
   filter: drop-shadow(0 0 2em #49ff9baa);
@@ -26,7 +34,8 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 1em;
+  margin-bottom: 70px;
 }
 
 .read-the-docs {
