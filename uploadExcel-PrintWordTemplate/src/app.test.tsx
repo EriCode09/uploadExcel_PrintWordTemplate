@@ -1,5 +1,5 @@
 // import { describe, test, expect } from 'vitest'
-import {render, screen} from '@testing-library/react'
+import {render, screen, fireEvent} from '@testing-library/react'
 import App from './App'
 
 describe('App', () => { 
@@ -12,6 +12,27 @@ describe('App', () => {
     test('Should show the main App component', () => {
         // Con Screen accedemos al "DOM", le pedimos que busque si el texto que hemos añadido dentro de "getByText" está definido con el metodo "toBeDefined".
         expect(screen.getByText('Excel to Word Template')).toBeDefined(); 
+    })
+
+    test('Should be able to upload a file', () => {
+        const fileUploader = screen.getByText('Browse files')
+        const file = new File(['(contenido del archivo)'], 'archivo.xlsx', {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+
+        fireEvent.change(fileUploader, {target: { files: [file] } });
+    })
+
+
+    test('Should show the instructions to download after the file has uploaded', () => {
+        
+        const fileUploader = screen.getByText('Browse files')
+        const file = new File(['(contenido del archivo)'], 'archivo.xlsx', {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+        
+        const changeEvent = new Event('change', {bubbles: true});
+        // fireEvent.change(fileUploader, {target: { files: [] } });
+        fireEvent(fileUploader, changeEvent);
+
+        const text = screen.getByText('Press the button to download transformed files!')
+        expect(text).toBeDefined();
     })
 
  })

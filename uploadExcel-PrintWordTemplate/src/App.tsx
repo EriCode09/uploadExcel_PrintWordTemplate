@@ -230,6 +230,7 @@ function App() {
           errorMessage={errorMessage}
           accept=".xlsx"
           onDrop={handleFileUpload}
+          name="Uploader"
         />
 
         {docData && docData.length > 0 && (
