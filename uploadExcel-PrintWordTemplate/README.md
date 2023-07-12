@@ -23,6 +23,8 @@ Main Dependencies:
 - base web (baseUI)
 - Styletron
 - Xlsx
+
+
 ## Run Locally
 
 Go to the project directory
