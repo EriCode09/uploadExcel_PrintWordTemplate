@@ -15,6 +15,7 @@ import { TemplateData, TemplateHandler } from "easy-template-x";
 // Styleron for BaseUI Components
 import { Provider as StyletronProvider } from "styletron-react";
 import { Client as Styletron } from "styletron-engine-atomic";
+import { Select } from "baseui/select";
 const engine = new Styletron();
 
 // Asignamos tipado a los datos que sacamos del JSON
@@ -40,6 +41,9 @@ function App() {
 
   // Estado donde se subirán los datos del excel en formato JSON.
   const [docData, setDocData] = useState<Data[]>([]);
+
+  // Handler para manejar el archivo seleccionado en el desplegable.
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Manejamos la subida de datos y asignamos el primer archivo al estado 'File'
   const handleFileUpload = (acceptedfiles: File[], rejectedFiles: File[]) => {
@@ -205,6 +209,10 @@ function App() {
     }, 0);
   }
 
+  const handleFileSelect = ( file: any ) => {
+    setSelectedFile(file[0]);
+  };
+
   return (
     <StyletronProvider value={engine}>
       <div>
@@ -239,12 +247,21 @@ function App() {
             Press the button to download transformed files!{" "}
           </p>
         )}
+
         {docData && docData.length > 0 && (
           <Button style={{ marginTop: 0 }} onClick={DownloadNewDocs}>
             {" "}
             Download Docx{" "}
           </Button>
         )}
+
+        {/* Necesario para el testing */}
+        {docData && docData.length > 0 && (
+          <div hidden>
+            {docData.map(data => {return data.Nombre})}
+          </div>
+        )}
+
       </div>
       <div className="wave-container">
         <Waves />

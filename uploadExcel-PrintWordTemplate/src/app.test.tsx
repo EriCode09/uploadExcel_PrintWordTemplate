@@ -1,5 +1,6 @@
 // import { describe, test, expect } from 'vitest'
 import {render, screen, fireEvent} from '@testing-library/react'
+
 import App from './App'
 
 describe('App', () => { 
@@ -19,6 +20,7 @@ describe('App', () => {
         const file = new File(['(contenido del archivo)'], 'archivo.xlsx', {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
 
         fireEvent.change(fileUploader, {target: { files: [file] } });
+        expect(screen.getByText('archivo.xlsx')).toBeDefined();
     })
 
 
@@ -26,13 +28,10 @@ describe('App', () => {
         
         const fileUploader = screen.getByText('Browse files')
         const file = new File(['(contenido del archivo)'], 'archivo.xlsx', {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
-        
-        const changeEvent = new Event('change', {bubbles: true});
-        // fireEvent.change(fileUploader, {target: { files: [] } });
-        fireEvent(fileUploader, changeEvent);
+    
+        fireEvent.change(fileUploader, {target: { files: [file] } });
+        expect(screen.getByText('Press the button to download transformed files!')).toBeDefined();
 
-        const text = screen.getByText('Press the button to download transformed files!')
-        expect(text).toBeDefined();
     })
 
  })
