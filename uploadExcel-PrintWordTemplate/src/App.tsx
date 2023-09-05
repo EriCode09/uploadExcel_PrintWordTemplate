@@ -30,6 +30,7 @@ type Data = {
   TransformarDocx: boolean;
   Horas: number;
   PreciosHora: number;
+  DescuentoServicio: number;
   PrecioServicio: number;
   PrecioTotal: number;
 };
@@ -98,8 +99,9 @@ function App() {
               Servicios: [],
               Edad: item.Edad,
               Telefono: item.Telefono,
-              Dirección: item.Dirección,
+              Dirección: "",
               PrecioTotal: 0,
+              PrecioTotalConDescuento: 0,
             },
           ],
         };
@@ -108,9 +110,38 @@ function App() {
         const searchSameidData = existingData.filter(
           (data) => data.id === item.id
         );
+        
         const ArrPrecioTotal: Array<number> = [];
+        const ArrDescuentosTotales: Array<number> = [];
+        const ArrDireccionesServi: Array<String> = [];
 
-        function sumarPrecioTotal(array: Array<number>) {
+        searchSameidData.forEach((datos: any) => {
+          
+          ArrPrecioTotal.push(datos.PrecioServicio);
+          ArrDescuentosTotales.push(datos.DescuentoServicio);
+          ArrDireccionesServi.push(datos.Dirección)
+
+          for (let i = 0; i < ArrDireccionesServi.length; i++) {
+            for (let j = i + 1; j < ArrDireccionesServi.length; j++) {
+              if (ArrDireccionesServi[i] === ArrDireccionesServi[j]) {
+                ArrDireccionesServi.splice(j, 1); // Eliminar elemento repetido usando splice
+                j--; // Ajustar la posición para evitar saltar elementos
+              }
+            }
+          }
+
+          data.data[0].Dirección = ArrDireccionesServi.toString();
+
+          data.data[0].Servicios.push({
+            servicio: datos.Servicios,
+            horas: datos.Horas,
+            precio: datos.PreciosHora,
+            precioServi: datos.PrecioServicio,
+            descuentoServi: datos.DescuentoServicio,
+          });
+        });
+
+        function sumarPrecios(array: Array<number>) {
           let suma = 0;
           for (let i = 0; i < array.length; i++) {
             suma += array[i];
@@ -118,18 +149,13 @@ function App() {
           return suma;
         }
 
-        searchSameidData.forEach((datos: any) => {
-          ArrPrecioTotal.push(datos.PrecioServicio);
-          data.data[0].Servicios.push({
-            servicio: datos.Servicios,
-            horas: datos.Horas,
-            precio: datos.PreciosHora,
-            precioServi: datos.PrecioServicio,
-          });
-        });
-
-        data.data[0].PrecioTotal = sumarPrecioTotal(ArrPrecioTotal);
+        data.data[0].PrecioTotal = sumarPrecios(ArrPrecioTotal);
         console.log(ArrPrecioTotal);
+
+        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrDescuentosTotales)
+        console.log(ArrDescuentosTotales);
+
+        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrPrecioTotal) - sumarPrecios(ArrDescuentosTotales);
 
         try {
           console.log(data);
