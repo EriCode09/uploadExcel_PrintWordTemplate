@@ -19,21 +19,47 @@ import { Select } from "baseui/select";
 const engine = new Styletron();
 
 // Asignamos tipado a los datos que sacamos del JSON
+
+// type Data2 = {
+//   id: number;
+//   Nombre: string;
+//   Servicios: Array<{ servicio: string } | string>;
+//   Dirección: string;
+//   Telefono: number;
+//   Edad: number;
+//   Template: string;
+//   TransformarDocx: boolean;
+//   Horas: number;
+//   PreciosHora: number;
+//   DescuentoServicio: number;
+//   PrecioServicio: number;
+//   PrecioTotal: number;
+// };
+
 type Data = {
   id: number;
-  Nombre: string;
+  Titulo_Servicio: string;
+  Manager: string;
+  Fecha_Preparación: number;
+  Area_Soporte: string;
+  Precio_Final: number;
+  Fecha_Inicio: number;
+  Fecha_Fin: number;
+  AM: string;
+  Teléfono: number;
+  Mail: string;
+  Posición_Manager: string;
+  Teléfono_Manager: string;
+  Mail_Manager: string;
+  Descripción_Servicio: string;
   Servicios: Array<{ servicio: string } | string>;
-  Dirección: string;
-  Telefono: number;
-  Edad: number;
+  Perfil: string;
+  Horas: number;
+  Precio_Hora: number;
+  Preico_hora_sin_descuento: number;
   Template: string;
   TransformarDocx: boolean;
-  Horas: number;
-  PreciosHora: number;
-  DescuentoServicio: number;
-  PrecioServicio: number;
-  PrecioTotal: number;
-};
+}
 
 function App() {
   // Subida excel
@@ -62,6 +88,7 @@ function App() {
   useEffect(() => {
     if (file !== null) {
       convertToJson(file);
+      console.log(docData);
     }
   }, [file]);
 
@@ -95,13 +122,26 @@ function App() {
               id: item.id,
               Template: item.Template,
               TransformarDocx: item.TransformarDocx,
-              Nombre: item.Nombre,
               Servicios: [],
-              Edad: item.Edad,
-              Telefono: item.Telefono,
-              Dirección: "",
-              PrecioTotal: 0,
-              PrecioTotalConDescuento: 0,
+              Titulo_servicio: item.Titulo_Servicio,
+              Manager: item.Manager,
+              Fecha_preparacion: item.Fecha_Preparación,
+              Area_soporte: item.Area_Soporte,
+              DescuentoTotal: 0, 
+              Precio_Total: 0, 
+              Fecha_inicio: item.Fecha_Inicio,
+              Fecha_fin: item.Fecha_Fin,
+              AM: item.AM,
+              Telefono: item.Teléfono,
+              Mail: item.Mail,
+              Posicion_manager: item.Posición_Manager,
+              Telefono_manager: item.Manager,
+              Mail_manager: item.Mail_Manager,
+              Descripcion_servicio: item.Descripción_Servicio,
+              Perfil: item.Perfil,
+              Horas: item.Horas,
+              Precio_hora: item.Precio_Hora,
+              Preico_hora_sin_descuento: item.Preico_hora_sin_descuento,
             },
           ],
         };
@@ -117,7 +157,7 @@ function App() {
 
         searchSameidData.forEach((datos: any) => {
           
-          ArrPrecioTotal.push(datos.PrecioServicio);
+          ArrPrecioTotal.push(datos.Horas * datos.Precio_Hora);
           ArrDescuentosTotales.push(datos.DescuentoServicio);
           ArrDireccionesServi.push(datos.Dirección)
 
@@ -133,11 +173,9 @@ function App() {
           data.data[0].Dirección = ArrDireccionesServi.toString();
 
           data.data[0].Servicios.push({
-            servicio: datos.Servicios,
+            servicio: datos.Perfil,
             horas: datos.Horas,
-            precio: datos.PreciosHora,
-            precioServi: datos.PrecioServicio,
-            descuentoServi: datos.DescuentoServicio,
+            precio: datos.Precio_hora,
           });
         });
 
@@ -149,11 +187,12 @@ function App() {
           return suma;
         }
 
-        data.data[0].PrecioTotal = sumarPrecios(ArrPrecioTotal);
-        console.log(ArrPrecioTotal);
+        data.data[0].Precio_Total = sumarPrecios(ArrPrecioTotal);
+        // console.log(ArrPrecioTotal);
 
-        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrDescuentosTotales)
-        console.log(ArrDescuentosTotales);
+
+        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrDescuentosTotales) // !!! Darle una vuelta
+        // console.log(ArrDescuentosTotales);
 
         data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrPrecioTotal) - sumarPrecios(ArrDescuentosTotales);
 
@@ -170,7 +209,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Nombre}.docx`, doc);
+              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
             
             } else if (item.Template === "plantillaDatos") {
               const response = await fetch("/plantillaDatos.docx");
@@ -178,7 +217,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Nombre}.docx`, doc);
+              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
             }
 
             /* 
@@ -279,13 +318,6 @@ function App() {
             {" "}
             Download Docx{" "}
           </Button>
-        )}
-
-        {/* Necesario para el testing */}
-        {docData && docData.length > 0 && (
-          <div hidden>
-            {docData.map(data => {return data.Nombre})}
-          </div>
         )}
 
       </div>
