@@ -56,9 +56,12 @@ type Data = {
   Perfil: string;
   Horas: number;
   Precio_Hora: number;
-  Preico_hora_sin_descuento: number;
+  PrecioHora_SinDescuento: number;
+  Precio_Servicio: number;
+  PrecioTotal_SinDescuento: number;
   Template: string;
   TransformarDocx: boolean;
+  PrecioServicio_Total: number;
 }
 
 function App() {
@@ -127,12 +130,10 @@ function App() {
               Manager: item.Manager,
               Fecha_preparacion: item.Fecha_Preparación,
               Area_soporte: item.Area_Soporte,
-              DescuentoTotal: 0, 
-              Precio_Total: 0, 
-              Fecha_inicio: item.Fecha_Inicio,
-              Fecha_fin: item.Fecha_Fin,
+              Fecha_Inicio: item.Fecha_Inicio,
+              Fecha_Fin: item.Fecha_Fin,
               AM: item.AM,
-              Telefono: item.Teléfono,
+              Teléfono: item.Teléfono,
               Mail: item.Mail,
               Posicion_manager: item.Posición_Manager,
               Telefono_manager: item.Manager,
@@ -141,7 +142,10 @@ function App() {
               Perfil: item.Perfil,
               Horas: item.Horas,
               Precio_hora: item.Precio_Hora,
-              Preico_hora_sin_descuento: item.Preico_hora_sin_descuento,
+              PrecioHora_SinDescuento: item.PrecioHora_SinDescuento,
+              PrecioTotal_SinDescuento: item.PrecioTotal_SinDescuento,
+              Precio_Total: 0,
+              Descuento_Total: 0,
             },
           ],
         };
@@ -152,30 +156,57 @@ function App() {
         );
         
         const ArrPrecioTotal: Array<number> = [];
-        const ArrDescuentosTotales: Array<number> = [];
-        const ArrDireccionesServi: Array<String> = [];
+        const ArrPrecioTotalSinDescuento: Array<number> = [];
+        // const ArrDireccionesServi: Array<String> = [];
+
+        const SumaPrecioServicio = (horas: number, precioHora: number) => {
+
+          const total = precioHora * horas;
+
+          const formattedTotal = total
+          .toFixed(2)
+          .replace(/\d(?=(\d{3})+\.)/g, '$&,')
+          .concat('€');
+
+          return formattedTotal;
+
+        }
+
+        const formatearNumero = (numero: number) => {
+
+          const formattedTotal = numero          
+          .toFixed(2)
+          .replace(/\d(?=(\d{3})+\.)/g, '$&,')
+          .concat('€');
+
+          return formattedTotal;
+
+        }
 
         searchSameidData.forEach((datos: any) => {
           
+
+          const precioServicio = SumaPrecioServicio(datos.Horas, datos.Precio_Hora)
           ArrPrecioTotal.push(datos.Horas * datos.Precio_Hora);
-          ArrDescuentosTotales.push(datos.DescuentoServicio);
-          ArrDireccionesServi.push(datos.Dirección)
+          ArrPrecioTotalSinDescuento.push(datos.PrecioTotal_SinDescuento);
+          // ArrDireccionesServi.push(datos.Dirección)
 
-          for (let i = 0; i < ArrDireccionesServi.length; i++) {
-            for (let j = i + 1; j < ArrDireccionesServi.length; j++) {
-              if (ArrDireccionesServi[i] === ArrDireccionesServi[j]) {
-                ArrDireccionesServi.splice(j, 1); // Eliminar elemento repetido usando splice
-                j--; // Ajustar la posición para evitar saltar elementos
-              }
-            }
-          }
+          // for (let i = 0; i < ArrDireccionesServi.length; i++) {
+          //   for (let j = i + 1; j < ArrDireccionesServi.length; j++) {
+          //     if (ArrDireccionesServi[i] === ArrDireccionesServi[j]) {
+          //       ArrDireccionesServi.splice(j, 1); // Eliminar elemento repetido usando splice
+          //       j--; // Ajustar la posición para evitar saltar elementos
+          //     }
+          //   }
+          // }
 
-          data.data[0].Dirección = ArrDireccionesServi.toString();
+          // data.data[0].Dirección = ArrDireccionesServi.toString();
 
           data.data[0].Servicios.push({
             servicio: datos.Perfil,
             horas: datos.Horas,
-            precio: datos.Precio_hora,
+            precio: datos.Precio_Hora,
+            precioServi: precioServicio
           });
         });
 
@@ -186,15 +217,29 @@ function App() {
           }
           return suma;
         }
+        
+        // Calculo Precio Total sin Descuento
+        data.data[0].PrecioTotal_SinDescuento = sumarPrecios(ArrPrecioTotalSinDescuento)
+        
+        // Formateo Precio Total Sin Descuento
+        data.data[0].PrecioTotal_SinDescuento = formatearNumero(data.data[0].PrecioTotal_SinDescuento)
 
+        // Calculo Precio Total
         data.data[0].Precio_Total = sumarPrecios(ArrPrecioTotal);
         // console.log(ArrPrecioTotal);
 
+        // Formateo Precio Total
+        data.data[0].Precio_Total = formatearNumero(data.data[0].Precio_Total)
 
-        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrDescuentosTotales) // !!! Darle una vuelta
+        // Calculo Descuento Total
+        data.data[0].Descuento_Total = sumarPrecios(ArrPrecioTotalSinDescuento) - sumarPrecios(ArrPrecioTotal) 
         // console.log(ArrDescuentosTotales);
 
-        data.data[0].PrecioTotalConDescuento = sumarPrecios(ArrPrecioTotal) - sumarPrecios(ArrDescuentosTotales);
+        // Formateo Precio Total
+        data.data[0].Descuento_Total = formatearNumero(data.data[0].Descuento_Total) 
+        
+
+
 
         try {
           console.log(data);
@@ -213,6 +258,14 @@ function App() {
             
             } else if (item.Template === "plantillaDatos") {
               const response = await fetch("/plantillaDatos.docx");
+              console.log(response);
+              const templateFile = await response.blob();
+              const handler = new TemplateHandler();
+              const doc = await handler.process(templateFile, data);
+              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
+            
+            } else if (item.Template === "SOW BETWEEN - 23-HPI-XXX- Manager - Servicio - Iniciales AM") {
+              const response = await fetch("/SOW BETWEEN - 23-HPI-XXX- Manager - Servicio - Iniciales AM.docx");
               console.log(response);
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
