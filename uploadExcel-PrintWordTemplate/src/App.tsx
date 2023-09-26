@@ -55,9 +55,9 @@ type Data = {
   Servicios: Array<{ servicio: string } | string>;
   Perfil: string;
   Horas: number;
-  Precio_Hora: number;
-  PrecioHora_SinDescuento: number;
-  Precio_Servicio: number;
+  PrecioHora_ConDescuento: number;
+  PrecioHora_SinDescuento: any;
+  PrecioServicio_ConDescuento: number;
   PrecioTotal_SinDescuento: number;
   Template: string;
   TransformarDocx: boolean;
@@ -141,11 +141,12 @@ function App() {
               Descripcion_servicio: item.Descripción_Servicio,
               Perfil: item.Perfil,
               Horas: item.Horas,
-              Precio_hora: item.Precio_Hora,
+              PrecioHora_ConDescuento: item.PrecioHora_ConDescuento,
               PrecioHora_SinDescuento: item.PrecioHora_SinDescuento,
               PrecioTotal_SinDescuento: item.PrecioTotal_SinDescuento,
               Precio_Total: 0,
               Descuento_Total: 0,
+              Savings: false,
             },
           ],
         };
@@ -183,29 +184,39 @@ function App() {
 
         }
 
+        const handleSavingsPrice = (ConDescuento: number, sinDescuento: number) => {
+          if (ConDescuento === sinDescuento) { return "N/A" }
+          else { return `${sinDescuento}€`; }
+        }
+
+
         searchSameidData.forEach((datos: any) => {
-          
 
-          const precioServicio = SumaPrecioServicio(datos.Horas, datos.Precio_Hora)
-          ArrPrecioTotal.push(datos.Horas * datos.Precio_Hora);
+          let countTrue = 0;
+
+          if(datos.PrecioHora_SinDescuento != datos.PrecioHora_ConDescuento) {
+            countTrue++;
+
+            if (countTrue >= 1) {
+              data.data[0].Savings = true;
+            } else {
+              data.data[0].Savings = false;
+            }
+
+          }
+
+          console.log(countTrue);
+
+          const precioServicio = SumaPrecioServicio(datos.Horas, datos.PrecioHora_ConDescuento)
+          ArrPrecioTotal.push(datos.Horas * datos.PrecioHora_ConDescuento);
           ArrPrecioTotalSinDescuento.push(datos.PrecioTotal_SinDescuento);
-          // ArrDireccionesServi.push(datos.Dirección)
-
-          // for (let i = 0; i < ArrDireccionesServi.length; i++) {
-          //   for (let j = i + 1; j < ArrDireccionesServi.length; j++) {
-          //     if (ArrDireccionesServi[i] === ArrDireccionesServi[j]) {
-          //       ArrDireccionesServi.splice(j, 1); // Eliminar elemento repetido usando splice
-          //       j--; // Ajustar la posición para evitar saltar elementos
-          //     }
-          //   }
-          // }
-
-          // data.data[0].Dirección = ArrDireccionesServi.toString();
+          const precioHoraSinDescuento = handleSavingsPrice(datos.PrecioHora_ConDescuento, datos.PrecioHora_SinDescuento)
 
           data.data[0].Servicios.push({
             servicio: datos.Perfil,
             horas: datos.Horas,
-            precio: datos.Precio_Hora,
+            precio: datos.PrecioHora_ConDescuento,
+            precioSinDescuento: precioHoraSinDescuento,
             precioServi: precioServicio
           });
         });
@@ -217,6 +228,8 @@ function App() {
           }
           return suma;
         }
+        
+        // data.data[0].Savings = handleSavingsBool(data.data[0].PrecioHora_ConDescuento, data.data[0].PrecioHora_SinDescuento) 
         
         // Calculo Precio Total sin Descuento
         data.data[0].PrecioTotal_SinDescuento = sumarPrecios(ArrPrecioTotalSinDescuento)
@@ -238,7 +251,6 @@ function App() {
         // Formateo Precio Total
         data.data[0].Descuento_Total = formatearNumero(data.data[0].Descuento_Total) 
         
-
 
 
         try {
