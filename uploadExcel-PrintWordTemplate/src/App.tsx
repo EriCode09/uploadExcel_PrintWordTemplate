@@ -62,6 +62,7 @@ type Data = {
   Template: string;
   TransformarDocx: boolean;
   PrecioServicio_Total: number;
+  Proyecto: string;
 }
 
 function App() {
@@ -266,7 +267,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
+              saveFile(`SOW BETWEEN${item.Manager} ${item.Proyecto} - ${item.Titulo_Servicio}.docx`, doc);
             
             } else if (item.Template === "plantillaDatos") {
               const response = await fetch("/plantillaDatos.docx");
