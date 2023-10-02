@@ -20,24 +20,9 @@ const engine = new Styletron();
 
 // Asignamos tipado a los datos que sacamos del JSON
 
-// type Data2 = {
-//   id: number;
-//   Nombre: string;
-//   Servicios: Array<{ servicio: string } | string>;
-//   Dirección: string;
-//   Telefono: number;
-//   Edad: number;
-//   Template: string;
-//   TransformarDocx: boolean;
-//   Horas: number;
-//   PreciosHora: number;
-//   DescuentoServicio: number;
-//   PrecioServicio: number;
-//   PrecioTotal: number;
-// };
-
 type Data = {
   id: number;
+  Proyecto: string;
   Titulo_Servicio: string;
   Manager: string;
   Fecha_Preparación: number;
@@ -62,7 +47,6 @@ type Data = {
   Template: string;
   TransformarDocx: boolean;
   PrecioServicio_Total: number;
-  Proyecto: string;
 }
 
 function App() {
@@ -148,6 +132,7 @@ function App() {
               Precio_Total: 0,
               Descuento_Total: 0,
               Savings: false,
+              Proyecto: item.Proyecto,
             },
           ],
         };
@@ -183,6 +168,64 @@ function App() {
 
           return formattedTotal;
 
+        }
+
+        function formatearNombre(nombreCompleto: string) {
+          // Verificar si nombreCompleto es válido
+          if (!nombreCompleto || typeof nombreCompleto !== 'string') {
+            return ""; // O manejar el caso de error de alguna otra manera
+          }
+          
+          // Dividir el nombre en palabras separadas por espacios
+          const palabras = nombreCompleto.split(' ');
+          
+          // Verificar si palabras es un array no vacío
+          if (palabras.length === 0) {
+            return ""; // O manejar el caso de error de alguna otra manera
+          }
+          
+          // Tomar la primera letra de cada palabra y convertirla a minúscula
+          const iniciales = nombreCompleto[0].toLowerCase();
+          
+          // Tomar el último apellido (asumiendo que el último elemento es el apellido)
+          const apellido = palabras[1].toLowerCase();
+          
+          // Unir las iniciales y el apellido
+          const nombreFormateado = `${iniciales}${apellido}`;
+          
+          return nombreFormateado;
+        }
+
+        function formatearAM(nombreCompleto: string) {
+          // Verificar si nombreCompleto es una cadena de caracteres válida
+          if (typeof nombreCompleto !== 'string') {
+            return ""; // O manejar el caso de error de alguna otra manera
+          }
+        
+          // Dividir el nombre en palabras separadas por espacios
+          const palabras = nombreCompleto.split(' ');
+        
+          // Tomar la primera letra de cada palabra y convertirla a mayúscula
+          const nombre = palabras[0].toUpperCase()
+          const apellido = palabras[1].toUpperCase()
+          const primeraInicial = nombre[0]
+          const segundaInicial = apellido[0]
+        
+          // Unir las iniciales
+          const inicialesFormateadas = `${primeraInicial}${segundaInicial}`;
+        
+          return inicialesFormateadas;
+        }
+
+        function obtenerAno() {
+          // Obtener el año actual
+          const añoActual = new Date().getFullYear();
+        
+          // Obtener los dos últimos dígitos del año
+          const ultimosDosDigitos = añoActual % 100;
+        
+          // Devolver los dos últimos dígitos como una cadena
+          return ultimosDosDigitos.toString();
         }
 
         const handleSavingsPrice = (ConDescuento: number, sinDescuento: number) => {
@@ -230,7 +273,17 @@ function App() {
           return suma;
         }
         
-        // data.data[0].Savings = handleSavingsBool(data.data[0].PrecioHora_ConDescuento, data.data[0].PrecioHora_SinDescuento) 
+        // Formateo Nombre 
+        data.data[0].Manager_formateado = formatearNombre(data.data[0].Manager) 
+        console.log(data.data[0].Manager_formateado);
+
+        // Formateo AM
+        data.data[0].Iniciales_am = formatearAM(data.data[0].AM) 
+        console.log(data.data[0].Iniciales_am);
+
+        // Obtener año actual formateado
+        data.data[0].ano_formateado = obtenerAno();
+        console.log(data.data[0].ano_formateado);
         
         // Calculo Precio Total sin Descuento
         data.data[0].PrecioTotal_SinDescuento = sumarPrecios(ArrPrecioTotalSinDescuento)
@@ -267,7 +320,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`SOW BETWEEN${item.Manager} ${item.Proyecto} - ${item.Titulo_Servicio}.docx`, doc);
+              saveFile(`SOW BETWEEN - ${data.data[0].ano_formateado}${item.Proyecto} - ${data.data[0].Manager_formateado} - ${item.Titulo_Servicio} - ${data.data[0].Iniciales_am} .docx`, doc);
             
             } else if (item.Template === "plantillaDatos") {
               const response = await fetch("/plantillaDatos.docx");
@@ -275,7 +328,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
+              saveFile(`SOW BETWEEN - ${data.data[0].ano_formateado}${item.Proyecto} - ${data.data[0].Manager_formateado} - ${item.Titulo_Servicio} - ${data.data[0].Iniciales_am} .docx`, doc);
             
             } else if (item.Template === "SOW BETWEEN - 23-HPI-XXX- Manager - Servicio - Iniciales AM") {
               const response = await fetch("/SOW BETWEEN - 23-HPI-XXX- Manager - Servicio - Iniciales AM.docx");
@@ -283,7 +336,7 @@ function App() {
               const templateFile = await response.blob();
               const handler = new TemplateHandler();
               const doc = await handler.process(templateFile, data);
-              saveFile(`Doc${item.id} - ${item.Titulo_Servicio}.docx`, doc);
+              saveFile(`SOW BETWEEN - ${data.data[0].ano_formateado}${item.Proyecto} - ${data.data[0].Manager_formateado} - ${item.Titulo_Servicio} - ${data.data[0].Iniciales_am} .docx`, doc);
             }
 
             /* 
